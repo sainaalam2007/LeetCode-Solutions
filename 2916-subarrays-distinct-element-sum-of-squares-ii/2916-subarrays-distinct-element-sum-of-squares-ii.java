@@ -1,8 +1,7 @@
-
 class Solution {
-    private static final long MOD = 1_000_000_007L;
-    private long[] sum, sq, lazy;
-    private int n;
+    static final long MOD = 1_000_000_007L;
+    long[] sum, sq, lazy;
+    int n;
 
     public int sumCounts(int[] nums) {
         n = nums.length;
@@ -25,45 +24,37 @@ class Solution {
         return (int) ans;
     }
 
-    private void apply(int node, int l, int r, long v) {
+    void apply(int p, int l, int r, long v) {
         long len = r - l + 1L;
-        long add = v % MOD;
-
-        sq[node] = (sq[node] + 2L * add % MOD * sum[node]
-                + len % MOD * add % MOD * add) % MOD;
-
-        sum[node] = (sum[node] + len % MOD * add) % MOD;
-        lazy[node] = (lazy[node] + add) % MOD;
+        sq[p] = (sq[p] + 2 * v % MOD * sum[p] % MOD
+                + len % MOD * v % MOD * v % MOD) % MOD;
+        sum[p] = (sum[p] + len % MOD * v) % MOD;
+        lazy[p] = (lazy[p] + v) % MOD;
     }
 
-    private void push(int node, int l, int r) {
-        if (lazy[node] == 0 || l == r) return;
-
-        int mid = (l + r) >>> 1;
-        long v = lazy[node];
-
-        apply(node * 2, l, mid, v);
-        apply(node * 2 + 1, mid + 1, r, v);
-
-        lazy[node] = 0;
+    void push(int p, int l, int r) {
+        if (lazy[p] == 0 || l == r) return;
+        int m = (l + r) >>> 1;
+        long v = lazy[p];
+        apply(p << 1, l, m, v);
+        apply(p << 1 | 1, m + 1, r, v);
+        lazy[p] = 0;
     }
 
-    private void update(int node, int l, int r, int ql, int qr) {
+    void update(int p, int l, int r, int ql, int qr) {
         if (ql > r || qr < l) return;
 
         if (ql <= l && r <= qr) {
-            apply(node, l, r, 1);
+            apply(p, l, r, 1);
             return;
         }
 
-        push(node, l, r);
+        push(p, l, r);
+        int m = (l + r) >>> 1;
+        update(p << 1, l, m, ql, qr);
+        update(p << 1 | 1, m + 1, r, ql, qr);
 
-        int mid = (l + r) >>> 1;
-
-        update(node * 2, l, mid, ql, qr);
-        update(node * 2 + 1, mid + 1, r, ql, qr);
-
-        sum[node] = (sum[node * 2] + sum[node * 2 + 1]) % MOD;
-        sq[node] = (sq[node * 2] + sq[node * 2 + 1]) % MOD;
+        sum[p] = (sum[p << 1] + sum[p << 1 | 1]) % MOD;
+        sq[p] = (sq[p << 1] + sq[p << 1 | 1]) % MOD;
     }
 }
